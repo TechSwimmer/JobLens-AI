@@ -11,3 +11,4 @@ import manifest from "./manifest.config";
 export default defineConfig({
   plugins: [react(),tailwindcss(),crx({ manifest })],
 })
+

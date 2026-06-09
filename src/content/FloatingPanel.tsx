@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { JobDetails } from "../types/job";
 import { extractSkills } from "../ats/skillExtractor";
 
-import { compareSkills } from "../ats/skillMatcher";
+import { compareSkill } from "../ats/skillMatcher";
 import AnalysisResult from "./components/AnalysisResult";
 
 import { getJobDetails } from "./getJobDetails";
@@ -113,7 +113,7 @@ export default function FloatingPanel() {
             const jobSkills = extractSkills(jobData.description)
             console.log(jobData.title);
             console.log(jobData.description);
-            const result = compareSkills(resumeSkills, jobSkills);
+            const result = compareSkill(resumeSkills, jobSkills);
             console.log(
                 "Resume text:",
                 resumetext

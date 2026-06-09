@@ -21,7 +21,6 @@ export default function Setup() {
             await saveToStorage("resumetext", resumeText)
             await saveToStorage("OpenAiKey", apiKey)
 
-            console.log("Resume Text : ", resumeText);
 
             console.log("saved")
        }

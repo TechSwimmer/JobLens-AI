@@ -22,7 +22,7 @@ export const extractTextFromPdf =
                 .map((item: any) => "str" in item ? item.str : "")
                 .join(" ");
 
-            fullText += pageText + "/n";
+            fullText += pageText + "\n";
         }
         return fullText;
     }
