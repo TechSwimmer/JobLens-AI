@@ -277,34 +277,143 @@ const SKILL_ALIASES:
 
 
 
-const normalizeSkill = (skill : string) => {
-  const cleanedSkill = 
-    skill.toLowerCase().trim();
 
-    return (
-      SKILL_ALIASES[
-        cleanedSkill 
-      ] || cleanedSkill
-    );
+const SKILL_WEIGHTS:
+  Record<string, number> = {
+
+  // Core frontend
+  react: 5,
+  "next.js": 5,
+  typescript: 5,
+  javascript: 5,
+
+  // Backend
+  "node.js": 5,
+  mongodb: 5,
+  postgresql: 5,
+  mysql: 5,
+  docker: 5,
+  kubernetes: 5,
+  "amazon web services": 5,
+
+  // Medium importance
+  express: 3,
+  nestjs: 3,
+  redux: 3,
+  graphql: 3,
+  jwt: 3,
+  "tailwind css": 3,
+  redis: 3,
+  firebase: 3,
+
+  // Lower importance
+  html: 1,
+  css: 1,
+  git: 1,
+  github: 1,
+  vite: 1,
+  webpack: 1,
 };
 
-export const compareSkill = 
+const getSkillWeight =
+  (skill: string) =>
+    SKILL_WEIGHTS[
+    skill
+    ] || 2;
+
+
+
+
+
+const normalizeSkill = (skill: string) => {
+  const cleanedSkill =
+    skill.toLowerCase().trim();
+
+  return (
+    SKILL_ALIASES[
+    cleanedSkill
+    ] || cleanedSkill
+  );
+};
+
+export const compareSkill =
   (
-    resumeSkills : string[],
+    resumeSkills: string[],
     jobSkills: string[],
 
   ) => {
     const normalizedResume = resumeSkills.map(normalizeSkill);
     const normalizedJob = jobSkills.map(normalizeSkill);
 
-    const matching = jobSkills.filter((_,index) => {
+    const matching = jobSkills.filter((_, index) => {
       return normalizedResume.includes(normalizedJob[index])
     });
 
     const missing = jobSkills.filter((_, index) => !normalizedResume.includes(normalizedJob[index]));
 
-    const score = 
-      Math.round((matching.length / Math.max(jobSkills.length,1)) * 100)
+    const totalWeight =
+      normalizedJob.reduce(
+        (
+          total,
+          skill
+        ) =>
+          total +
+          getSkillWeight(
+            skill
+          ),
+        0
+      );
 
-      return {matching, missing, score}
+    const matchedWeight =
+      matching.reduce(
+        (
+          total,
+          skill
+        ) =>
+          total +
+          getSkillWeight(
+            normalizeSkill(
+              skill
+            )
+          ),
+        0
+      );
+
+    const score =
+      Math.round(
+        (
+          matchedWeight /
+          Math.max(
+            totalWeight,
+            1
+          )
+        ) * 100
+      );
+
+
+    console.log(
+      "Resume Skills:",
+      resumeSkills
+    );
+
+    console.log(
+      "Job Skills:",
+      jobSkills
+    );
+
+    console.log(
+      "Normalized Resume:",
+      resumeSkills.map(
+        normalizeSkill
+      )
+    );
+
+    console.log(
+      "Normalized Job:",
+      jobSkills.map(
+        normalizeSkill
+      )
+    );
+
+    return { matching, missing, score }
   }

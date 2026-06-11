@@ -1,72 +1,188 @@
+
 import type { JobDetails }
   from "../types/job";
 
-
 export const getJobDetails =
-  (): JobDetails => {
+  async (): Promise<JobDetails> => {
 
-    const getText = (
-      selectors: string[]
-    ) => {
 
-      for (
-        const selector
-        of selectors
-      ) {
+    const isJobDetailsPage =
+      window.location.hostname.includes(
+        "linkedin.com"
+      ) &&
+      /^\/jobs\/view\/\d+/.test(
+        window.location.pathname
+      )
 
-        const element =
-          document.querySelector(
-            selector
-          );
+    if (
+      !isJobDetailsPage
+    ) {
+      console.log(
+        "Not on LinkedIn job details page"
+      );
 
-        const text =
-          element
-            ?.textContent
-            ?.trim();
-
-        if (
-          text &&
-          text.length > 2
-        ) {
-          return text;
-        }
-      }
-
-      return "";
+      return {
+        title: "",
+        company: "",
+        location: "",
+        description: "",
+      };
     };
 
-    const title =
-      getText([
-        ".job-details-jobs-unified-top-card__job-title",
-        ".t-24.job-details-jobs-unified-top-card__job-title",
-        "h1"
-      ]);
 
-    const company =
-      getText([
-        ".job-details-jobs-unified-top-card__company-name",
-        ".job-details-jobs-unified-top-card__company-name a",
-        ".jobs-unified-top-card__company-name",
-        ".job-details-jobs-unified-top-card__primary-description a",
-        "a[href*='/company/']"
-      ]);
+    const waitForElement =
+      async (
+        selectors:
+          string[],
+        timeout = 5000
+      ) => {
 
-    const location =
-      getText([
-        ".job-details-jobs-unified-top-card__bullet",
-        ".jobs-unified-top-card__bullet",
-        ".job-details-jobs-unified-top-card__primary-description-container span"
-      ]);
+        const start =
+          Date.now();
 
-    const description =
-      getText([
-        ".jobs-description-content__text",
-        ".jobs-box__html-content",
-        "#job-details",
-        ".jobs-description",
-        ".job-view-layout.jobs-details",
-        "[class*='description']"
-      ]);
+        while (
+          Date.now() -
+          start <
+          timeout
+        ) {
+
+          for (
+            const selector
+            of selectors
+          ) {
+
+            const element =
+              document.querySelector(
+                selector
+              );
+
+            if (
+              element
+            ) {
+              return element;
+            }
+          }
+
+          await new Promise(
+            (
+              resolve
+            ) =>
+              setTimeout(
+                resolve,
+                300
+              )
+          );
+        }
+
+        return null;
+      };
+
+   
+
+    // Wait for LinkedIn
+    // job content
+
+    await waitForElement([
+      ".job-details-jobs-unified-top-card__job-title",
+      ".jobs-search__job-details--container",
+      "h1"
+    ]);
+// Wait for page content
+await waitForElement([
+  "h1",
+  "section",
+  "div"
+]);
+
+// Get all visible text
+const texts =
+  [...document.querySelectorAll(
+    "h1, h2, h3, p, span, a"
+  )]
+    .map(el =>
+      el.textContent?.trim()
+    )
+    .filter(Boolean) as string[];
+
+// Find likely title
+const titleIndex =
+  texts.findIndex(
+    text =>
+      text.length > 3 &&
+      (
+        text.includes(
+          "Developer"
+        ) ||
+        text.includes(
+          "Engineer"
+        ) ||
+        text.includes(
+          "Designer"
+        ) ||
+        text.includes(
+          "Manager"
+        )
+      ) &&
+      !text.includes(
+        "Premium"
+      ) &&
+      !text.includes(
+        "notifications"
+      )
+  );
+
+const title =
+  titleIndex !== -1
+    ? texts[
+        titleIndex
+      ]
+    : "";
+
+const company =
+  titleIndex > 0
+    ? texts[
+        titleIndex - 1
+      ]
+    : "";
+
+const location =
+  titleIndex !== -1
+    ? texts[
+        titleIndex + 1
+      ]
+        ?.split("·")[0]
+        .trim()
+    : "";
+
+// Get description
+const elements =
+  [...document.querySelectorAll(
+    "section, div"
+  )] as HTMLElement[];
+
+
+  const descriptionContainer = 
+    elements
+    .filter(el =>
+      el.innerText?.includes(
+        "About the job"
+      )
+    )
+    .find(el =>
+      el.innerText.length >
+        1000 &&
+      el.innerText.length <
+        4000
+    );
+
+const description =
+  descriptionContainer
+    ?.innerText
+    .replace(
+      "About the job",
+      ""
+    )
+    .trim() || "";
 
     return {
       title:
@@ -85,4 +201,5 @@ export const getJobDetails =
         description ||
         "No description found",
     };
-};
+  };
+

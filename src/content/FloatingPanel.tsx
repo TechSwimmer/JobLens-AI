@@ -65,14 +65,18 @@ export default function FloatingPanel() {
 
     useEffect(() => {
         const updateJobData =
-            () => {
+            async () => {
                 const data =
-                    getJobDetails();
+                    await getJobDetails();
 
                 if (
-                    data.title ||
-                    data.description
+                    data.title &&
+                    data.description &&
+                    data.description !==
+                    "No description found"
                 ) {
+                    setJobData(data);
+                } {
                     setJobData(data);
                 }
             };
@@ -90,6 +94,14 @@ export default function FloatingPanel() {
     }, []);
 
     const handleAnalyze = async () => {
+
+        if (!isJobReady) {
+            alert(
+                "Job details are still loading"
+            );
+            return;
+        }
+
         try {
             setLoading(true);
             const storedResume =
@@ -114,25 +126,7 @@ export default function FloatingPanel() {
             console.log(jobData.title);
             console.log(jobData.description);
             const result = compareSkill(resumeSkills, jobSkills);
-            console.log(
-                "Resume text:",
-                resumetext
-            );
 
-            console.log(
-                "Job description:",
-                jobData.description
-            );
-
-            console.log(
-                "Resume skills:",
-                resumeSkills
-            );
-
-            console.log(
-                "Job skills:",
-                jobSkills
-            );
             setAnalysis(result);
         }
         catch (error) {
